@@ -1,0 +1,31 @@
+{
+  "name": "feishu-calendar-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Feishu Calendar API",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "feishu-calendar-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "feishu",
+    "calendar",
+    "lark"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "typescript": "^5.7.2"
+  }
+}

@@ -52,12 +52,23 @@ curl -X POST "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/inter
 
 创建 `.env` 文件：
 
+**方式 A：使用访问令牌（简单但会过期）**
+
 ```bash
 FEISHU_APP_ID=your_app_id_here
 FEISHU_APP_SECRET=your_app_secret_here
-# 可选：如果有用户访问令牌，添加下面这行（推荐添加）
 FEISHU_USER_ACCESS_TOKEN=your_user_access_token_here
 ```
+
+**方式 B：使用刷新令牌（推荐，自动续期）**
+
+```bash
+FEISHU_APP_ID=your_app_id_here
+FEISHU_APP_SECRET=your_app_secret_here
+FEISHU_REFRESH_TOKEN=your_refresh_token_here
+```
+
+> 💡 **推荐使用刷新令牌**：访问令牌有效期仅 2 小时，过期需手动更新。使用刷新令牌后，系统会自动获取新的访问令牌，无需手动干预。
 
 ### 5. 在 Claude Desktop 中使用
 
@@ -75,7 +86,7 @@ FEISHU_USER_ACCESS_TOKEN=your_user_access_token_here
       "env": {
         "FEISHU_APP_ID": "your_app_id_here",
         "FEISHU_APP_SECRET": "your_app_secret_here",
-        "FEISHU_USER_ACCESS_TOKEN": "your_user_access_token_here"
+        "FEISHU_REFRESH_TOKEN": "your_refresh_token_here"
       }
     }
   }

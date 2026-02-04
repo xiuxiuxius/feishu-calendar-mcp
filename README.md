@@ -8,7 +8,7 @@ Feishu Calendar MCP Server - 用于将飞书日历 API 包装成 Model Context P
 - **日程管理**: 获取、创建、更新、删除日程事件
 - **订阅管理**: 订阅/取消订阅日历
 - **忙碌状态**: 查询用户忙碌状态和可用时间
-- **多种认证方式**: 支持 app_access_token、refresh_token、user_access_token
+- **自动授权**: 支持通过 OAuth 获取 refresh_token，自动刷新 access_token
 
 ## 快速开始
 
@@ -33,37 +33,18 @@ npm run build
 2. **权限管理** → **权限配置**，开通以下权限：
    - `calendar:calendar` - 查看、管理日历
    - `calendar:event` - 查看、创建、编辑日程
+3. **安全设置** → **重定向 URI**，添加：
+   - `http://localhost:3456/callback`
 
 ### 4. 配置认证方式
 
-本服务器支持三种认证方式，推荐使用**方式一（最简单）**：
+本服务器支持两种认证方式，推荐使用**方式一**：
 
 ---
 
-#### 方式一：使用 App Access Token（推荐，最简单）
+#### 方式一：Refresh Token（推荐，自动刷新）
 
-只需 `app_id` 和 `app_secret`，自动获取应用级访问令牌。
-
-```bash
-FEISHU_APP_ID=cli_xxxxxxxxxxxxx
-FEISHU_APP_SECRET=xxxxxxxxxxxxxxxxxxxx
-FEISHU_USE_APP_TOKEN=true
-FEISHU_USER_ID=ou_xxxxxxxxxxxxx  # 你的用户 open_id
-```
-
-**如何获取 user_id**:
-
-1. 在飞书中打开你的个人资料
-2. 点击你的头像，查看个人资料
-3. user_id 就是你的 open_id，格式类似: `ou_xxxxxxxxxxxxx`
-
-或者运行飞书开放平台的调试工具: https://open.feishu.cn/api-explorer/，使用 `contact::user:get:by_emails` API 查询你的邮箱获取 user_id。
-
----
-
-#### 方式二：使用 Refresh Token（自动刷新）
-
-通过 OAuth 授权获取 refresh_token，系统会自动刷新 access_token。
+通过 OAuth 授权获取 refresh_token，系统会自动刷新 access_token，无需手动更新。
 
 ```bash
 FEISHU_APP_ID=cli_xxxxxxxxxxxxx
@@ -81,7 +62,7 @@ npm run auth
 
 ---
 
-#### 方式三：使用 User Access Token（手动管理）
+#### 方式二：User Access Token（手动管理）
 
 直接使用 user_access_token，但需要注意 token 有效期约 2 小时，过期需要重新获取。
 
@@ -100,27 +81,6 @@ FEISHU_USER_ACCESS_TOKEN=你的用户访问令牌
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-**使用 App Access Token（推荐）**:
-
-```json
-{
-  "mcpServers": {
-    "feishu-calendar": {
-      "command": "node",
-      "args": ["/path/to/feishu-calendar/dist/index.js"],
-      "env": {
-        "FEISHU_APP_ID": "your_app_id",
-        "FEISHU_APP_SECRET": "your_app_secret",
-        "FEISHU_USE_APP_TOKEN": "true",
-        "FEISHU_USER_ID": "ou_xxxxxxxxxxxxx"
-      }
-    }
-  }
-}
-```
-
-**使用 Refresh Token**:
-
 ```json
 {
   "mcpServers": {
@@ -135,6 +95,9 @@ FEISHU_USER_ACCESS_TOKEN=你的用户访问令牌
     }
   }
 }
+```
+
+首次启动时，如果未配置 token，会提示运行 `npm run auth` 进行授权。
 
 ### 6. 测试连接
 
@@ -280,7 +243,7 @@ npm run build
 
 ## 注意事项
 
-1. **认证方式**: 推荐使用 app_access_token（只需 app_id 和 app_secret + user_id）
+1. **认证方式**: 推荐使用 refresh_token（自动刷新，无需手动更新）
 2. **Token 刷新**: refresh_token 会自动刷新 access_token，无需手动干预
 3. **时间格式**: API 使用 Unix 时间戳（秒）
 4. **权限配置**: 确保应用已获取足够的权限

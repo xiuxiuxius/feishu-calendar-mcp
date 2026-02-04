@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { FeishuCalendarClient } from './dist/client.js';
+import { FeishuAuth } from './dist/auth.js';
 
 async function testAllTools() {
   console.log('=== 飞书日历 MCP 工具测试 ===\n');
@@ -9,6 +10,8 @@ async function testAllTools() {
     appSecret: process.env.FEISHU_APP_SECRET!,
     userAccessToken: process.env.FEISHU_USER_ACCESS_TOKEN,
     refreshToken: process.env.FEISHU_REFRESH_TOKEN,
+    useAppToken: process.env.FEISHU_USE_APP_TOKEN === 'true',
+    userId: process.env.FEISHU_USER_ID,
   };
 
   if (!config.appId || !config.appSecret) {
@@ -16,11 +19,32 @@ async function testAllTools() {
     return;
   }
 
-  if (!config.userAccessToken && !config.refreshToken) {
-    console.error('❌ 配置错误: FEISHU_USER_ACCESS_TOKEN 或 FEISHU_REFRESH_TOKEN 必须配置一个');
+  if (!config.userAccessToken && !config.refreshToken && !config.useAppToken) {
+    console.error('❌ 配置错误: 需要配置以下之一:');
+    console.error('   - FEISHU_USE_APP_TOKEN=true + FEISHU_USER_ID');
+    console.error('   - FEISHU_REFRESH_TOKEN');
+    console.error('   - FEISHU_USER_ACCESS_TOKEN');
     console.error('   请运行 "npm run auth" 进行授权\n');
     return;
   }
+
+  if (config.useAppToken && !config.userId) {
+    console.error('❌ 配置错误: 使用 app_access_token 时必须配置 FEISHU_USER_ID');
+    console.error('   运行 "npx tsx get-userid.ts" 获取你的 user_id\n');
+    return;
+  }
+
+  // 显示当前认证方式
+  console.log('🔐 认证方式:');
+  if (config.useAppToken) {
+    console.log('   App Access Token (app_access_token)');
+    console.log(`   User ID: ${config.userId}`);
+  } else if (config.refreshToken) {
+    console.log('   Refresh Token (自动刷新)');
+  } else {
+    console.log('   User Access Token (手动管理)');
+  }
+  console.log('');
 
   const client = new FeishuCalendarClient(config);
   const results: { name: string; status: string; error?: string }[] = [];

@@ -91,14 +91,26 @@ FEISHU_USER_ACCESS_TOKEN=你的用户访问令牌
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-**使用 App Access Token（推荐，最简单）**:
+#### 配置方式选择
 
+根据你的安装方式选择对应的配置：
+
+---
+
+**方式一：全局安装（推荐，最简单）**
+
+先全局安装：
+```bash
+npm install -g feishu-calendar-mcp
+```
+
+配置：
 ```json
 {
   "mcpServers": {
     "feishu-calendar": {
-      "command": "node",
-      "args": ["/path/to/feishu-calendar/dist/index.js"],
+      "command": "feishu-calendar-mcp",
+      "args": [],
       "env": {
         "FEISHU_APP_ID": "your_app_id",
         "FEISHU_APP_SECRET": "your_app_secret",
@@ -109,23 +121,71 @@ FEISHU_USER_ACCESS_TOKEN=你的用户访问令牌
 }
 ```
 
-**使用 Refresh Token**:
+---
 
+**方式二：使用 npx（无需安装）**
+
+配置：
 ```json
 {
   "mcpServers": {
     "feishu-calendar": {
-      "command": "node",
-      "args": ["/path/to/feishu-calendar/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "feishu-calendar-mcp"],
       "env": {
         "FEISHU_APP_ID": "your_app_id",
         "FEISHU_APP_SECRET": "your_app_secret",
-        "FEISHU_REFRESH_TOKEN": "your_refresh_token"
+        "FEISHU_USE_APP_TOKEN": "true"
       }
     }
   }
 }
 ```
+
+---
+
+**方式三：本地开发路径**
+
+如果你在开发目录下使用：
+```json
+{
+  "mcpServers": {
+    "feishu-calendar": {
+      "command": "node",
+      "args": ["/absolute/path/to/feishu-calendar/dist/index.js"],
+      "env": {
+        "FEISHU_APP_ID": "your_app_id",
+        "FEISHU_APP_SECRET": "your_app_secret",
+        "FEISHU_USE_APP_TOKEN": "true"
+      }
+    }
+  }
+}
+```
+
+---
+
+#### 认证方式选择
+
+**使用 App Access Token（推荐）**:
+```json
+"env": {
+  "FEISHU_APP_ID": "your_app_id",
+  "FEISHU_APP_SECRET": "your_app_secret",
+  "FEISHU_USE_APP_TOKEN": "true"
+}
+```
+
+**使用 Refresh Token**:
+```json
+"env": {
+  "FEISHU_APP_ID": "your_app_id",
+  "FEISHU_APP_SECRET": "your_app_secret",
+  "FEISHU_REFRESH_TOKEN": "your_refresh_token"
+}
+```
+
+配置完成后，**重启 Claude Desktop** 即可使用。
 
 ### 6. 测试连接
 

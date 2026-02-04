@@ -20,6 +20,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { FeishuCalendarClient } from './client.js';
 import { FeishuConfig } from './config.js';
+import { OAuthHelper } from './oauth.js';
 
 // 从环境变量获取配置
 function getConfigFromEnv(): FeishuConfig {
@@ -40,6 +41,44 @@ function getConfigFromEnv(): FeishuConfig {
     userAccessToken,
     refreshToken,
   };
+}
+
+/**
+ * 检查是否需要授权，如果需要则启动 OAuth 流程
+ */
+async function ensureAuth(config: FeishuConfig): Promise<void> {
+  // 如果已经有 token，直接返回
+  if (config.userAccessToken || config.refreshToken) {
+    return;
+  }
+
+  // 没有配置 token，启动 OAuth 授权流程
+  console.error('\n=== 飞书日历 MCP 首次使用授权 ===\n');
+  console.error('检测到未配置访问令牌，正在启动授权流程...\n');
+
+  const oauth = new OAuthHelper(config);
+  const tokens = await oauth.startAuthServer();
+
+  console.error('\n✓ 授权成功!');
+  console.error(`\n请将以下配置添加到你的 MCP 配置中:\n`);
+  console.error(`FEISHU_REFRESH_TOKEN=${tokens.refreshToken}\n`);
+  console.error('然后重启 MCP 服务器\n');
+
+  // 将 refresh_token 写入到 .env 文件（如果存在）
+  const fs = await import('fs');
+  const path = await import('path');
+  const envPath = path.join(process.cwd(), '.env');
+
+  if (fs.existsSync(envPath)) {
+    let envContent = fs.readFileSync(envPath, 'utf-8');
+    if (!envContent.includes('FEISHU_REFRESH_TOKEN')) {
+      envContent += `\nFEISHU_REFRESH_TOKEN=${tokens.refreshToken}\n`;
+      fs.writeFileSync(envPath, envContent);
+      console.error('✓ 已自动更新 .env 文件\n');
+    }
+  }
+
+  process.exit(0);
 }
 
 // 定义工具列表
@@ -398,6 +437,12 @@ const TOOLS: Tool[] = [
 ];
 
 async function main() {
+  // 获取配置
+  const config = getConfigFromEnv();
+
+  // 检查是否需要授权
+  await ensureAuth(config);
+
   // 创建 MCP 服务器
   const server = new Server(
     {
@@ -411,8 +456,7 @@ async function main() {
     }
   );
 
-  // 获取配置并创建客户端
-  const config = getConfigFromEnv();
+  // 创建客户端
   const client = new FeishuCalendarClient(config);
 
   // 处理工具列表请求

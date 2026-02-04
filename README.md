@@ -8,6 +8,7 @@ Feishu Calendar MCP Server - 用于将飞书日历 API 包装成 Model Context P
 - **日程管理**: 获取、创建、更新、删除日程事件
 - **订阅管理**: 订阅/取消订阅日历
 - **忙碌状态**: 查询用户忙碌状态和可用时间
+- **自动授权**: 首次使用自动触发 OAuth 授权，token 自动刷新
 
 ## 快速开始
 
@@ -24,51 +25,43 @@ npm run build
 2. 创建**自建应用**
 3. 获取 **App ID** 和 **App Secret**
 
-### 3. 获取用户访问令牌（重要）
+### 3. 配置应用权限
 
-飞书日历操作需要用户访问令牌，有两种获取方式：
+在飞书开放平台配置应用：
 
-#### 方式 A: 使用在线调试工具（推荐，最简单）
-
-1. 访问 [飞书开放平台 API 调试](https://open.feishu.cn/api-explorer/)
-2. 选择 `authen` → `getUserAccessToken`
-3. 输入你的 App ID 和 App Secret
-4. 点击"调试"获取用户访问令牌
-
-#### 方式 B: 使用 Postman/curl
-
-```bash
-curl -X POST "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "app_id": "你的app_id",
-    "app_secret": "你的app_secret"
-  }'
-```
-
-获取到的 `tenant_access_token` 可以用于部分 API。
+1. 进入你的应用管理页面
+2. **权限管理** → **权限配置**，开通以下权限：
+   - `calendar:calendar` - 查看、管理日历
+   - `calendar:event` - 查看、创建、编辑日程
+3. **安全设置** → **重定向 URI**，添加：
+   - `http://localhost:3456/callback`
 
 ### 4. 配置环境变量
 
-创建 `.env` 文件：
-
-**方式 A：使用访问令牌（简单但会过期）**
+创建 `.env` 文件，**只需配置应用凭证**：
 
 ```bash
-FEISHU_APP_ID=your_app_id_here
-FEISHU_APP_SECRET=your_app_secret_here
-FEISHU_USER_ACCESS_TOKEN=your_user_access_token_here
+FEISHU_APP_ID=cli_xxxxxxxxxxxxx
+FEISHU_APP_SECRET=xxxxxxxxxxxxxxxxxxxx
 ```
 
-**方式 B：使用刷新令牌（推荐，自动续期）**
+> 💡 **首次使用会自动触发 OAuth 授权流程**：
+> 1. 启动 MCP 服务器时会自动打开浏览器（或显示授权链接）
+> 2. 在飞书页面授权应用访问日历
+> 3. 授权成功后，`refresh_token` 会自动保存到 `.env` 文件
+> 4. 之后无需再次授权，token 会自动刷新
+
+---
+
+**可选：手动配置刷新令牌**
 
 ```bash
-FEISHU_APP_ID=your_app_id_here
-FEISHU_APP_SECRET=your_app_secret_here
-FEISHU_REFRESH_TOKEN=your_refresh_token_here
+FEISHU_APP_ID=cli_xxxxxxxxxxxxx
+FEISHU_APP_SECRET=xxxxxxxxxxxxxxxxxxxx
+FEISHU_REFRESH_TOKEN=你的刷新令牌
 ```
 
-> 💡 **推荐使用刷新令牌**：访问令牌有效期仅 2 小时，过期需手动更新。使用刷新令牌后，系统会自动获取新的访问令牌，无需手动干预。
+获取刷新令牌的方式见 [TOKEN_GUIDE.md](TOKEN_GUIDE.md)
 
 ### 5. 在 Claude Desktop 中使用
 
@@ -84,14 +77,15 @@ FEISHU_REFRESH_TOKEN=your_refresh_token_here
       "command": "node",
       "args": ["/path/to/feishu-calendar/dist/index.js"],
       "env": {
-        "FEISHU_APP_ID": "your_app_id_here",
-        "FEISHU_APP_SECRET": "your_app_secret_here",
-        "FEISHU_REFRESH_TOKEN": "your_refresh_token_here"
+        "FEISHU_APP_ID": "your_app_id",
+        "FEISHU_APP_SECRET": "your_app_secret"
       }
     }
   }
 }
 ```
+
+首次启动时会自动打开浏览器进行授权，完成后刷新令牌会自动保存。
 
 ### 6. 测试连接
 
@@ -187,40 +181,6 @@ curl -i -X POST \
   }'
 ```
 
-#### 创建日程（最小参数）
-
-```bash
-curl -i -X POST \
-  'https://open.feishu.cn/open-apis/calendar/v4/calendars/{calendar_id}/events' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer {your_user_access_token}' \
-  -d '{
-    "summary": "快速会议",
-    "start_time": {
-      "timestamp": "1738360800"
-    },
-    "end_time": {
-      "timestamp": "1738362600"
-    }
-  }'
-```
-
-#### 查询日历列表
-
-```bash
-curl -i -X GET \
-  'https://open.feishu.cn/open-apis/calendar/v4/calendars' \
-  -H 'Authorization: Bearer {your_user_access_token}'
-```
-
-#### 查询日程列表
-
-```bash
-curl -i -X GET \
-  'https://open.feishu.cn/open-apis/calendar/v4/calendars/{calendar_id}/events' \
-  -H 'Authorization: Bearer {your_user_access_token}'
-```
-
 ---
 
 ### 参数说明
@@ -271,10 +231,11 @@ npm run build
 
 ## 注意事项
 
-1. **用户令牌**: 大部分操作需要用户访问令牌 (User Access Token)
-2. **时间格式**: API 使用 Unix 时间戳（毫秒）
-3. **权限配置**: 确保应用已获取足够的权限
-4. **API 限制**: 飞书 API 有调用频率限制，请注意控制调用频率
+1. **自动授权**: 首次使用会自动触发 OAuth 授权流程
+2. **Token 刷新**: refresh_token 会自动刷新 access_token，无需手动干预
+3. **时间格式**: API 使用 Unix 时间戳（秒）
+4. **权限配置**: 确保应用已获取足够的权限
+5. **API 限制**: 飞书 API 有调用频率限制，请注意控制调用频率
 
 ## 许可证
 

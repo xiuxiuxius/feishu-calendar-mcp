@@ -1,6 +1,6 @@
 {
   "name": "feishu-calendar-mcp",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "MCP server for Feishu Calendar API - Integrates Feishu/Lark calendar with Claude Desktop",
   "type": "module",
   "main": "dist/index.js",

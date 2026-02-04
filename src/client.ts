@@ -16,11 +16,24 @@ import {
 
 export class FeishuCalendarClient {
   private auth: FeishuAuth;
+  private config: FeishuConfig;
   private baseUrl: string;
 
   constructor(config: FeishuConfig) {
     this.auth = new FeishuAuth(config);
+    this.config = config;
     this.baseUrl = config.apiBaseUrl || 'https://open.feishu.cn';
+  }
+
+  /**
+   * 添加 user_id 参数到 URL（使用 app_access_token 时需要）
+   */
+  private addUserIdParam(endpoint: string): string {
+    if (this.config.useAppToken && this.config.userId) {
+      const separator = endpoint.includes('?') ? '&' : '?';
+      return `${endpoint}${separator}user_id_type=open_id&user_id=${this.config.userId}`;
+    }
+    return endpoint;
   }
 
   private async request<T>(
@@ -28,6 +41,9 @@ export class FeishuCalendarClient {
     options: RequestInit = {},
     useUserToken = false
   ): Promise<FeishuResponse<T>> {
+    // 添加 user_id 参数（如果使用 app_access_token）
+    endpoint = this.addUserIdParam(endpoint);
+
     const headers = await this.auth.getAuthHeaders(useUserToken);
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {

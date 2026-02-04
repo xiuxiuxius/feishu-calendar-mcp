@@ -13,6 +13,7 @@ interface TokenCache {
 export class FeishuAuth {
   private config: FeishuConfig;
   private tenantTokenCache?: TokenCache;
+  private appTokenCache?: TokenCache;
   private userTokenCache?: TokenCache;
 
   constructor(config: FeishuConfig) {
@@ -23,6 +24,45 @@ export class FeishuAuth {
         expireTime: Date.now() + 7200000, // 默认 2 小时
       };
     }
+  }
+
+  /**
+   * 获取应用访问令牌 (App Access Token)
+   * 使用 app_id 和 app_secret 获取，最简单的方式
+   */
+  async getAppAccessToken(): Promise<string> {
+    // 检查缓存 token 是否有效
+    if (this.appTokenCache && Date.now() < this.appTokenCache.expireTime) {
+      return this.appTokenCache.accessToken;
+    }
+
+    // 获取新 token
+    const baseUrl = this.config.apiBaseUrl || 'https://open.feishu.cn';
+    const response = await fetch(`${baseUrl}/open-apis/auth/v3/app_access_token/internal`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        app_id: this.config.appId,
+        app_secret: this.config.appSecret,
+      }),
+    });
+
+    const result: FeishuResponse<{ app_access_token: string; expire: number }> =
+      await response.json();
+
+    if (result.code !== 0) {
+      throw new Error(`Failed to get app access token: ${result.msg}`);
+    }
+
+    this.appTokenCache = {
+      accessToken: result.data!.app_access_token,
+      // 提前 5 分钟过期
+      expireTime: Date.now() + (result.data!.expire - 300) * 1000,
+    };
+
+    return this.appTokenCache.accessToken;
   }
 
   /**
@@ -145,11 +185,24 @@ export class FeishuAuth {
 
   /**
    * 获取认证头
+   * 支持三种模式：
+   * 1. userToken - 用户访问令牌（需要用户授权）
+   * 2. appToken - 应用访问令牌（最简单，只需 app_id 和 app_secret）
+   * 3. tenantToken - 租户访问令牌（应用级别）
    */
   async getAuthHeaders(useUserToken = false): Promise<Record<string, string>> {
-    const token = useUserToken
-      ? await this.getUserAccessToken()
-      : await this.getTenantAccessToken();
+    let token: string;
+
+    if (useUserToken) {
+      // 用户级操作，需要用户访问令牌
+      token = await this.getUserAccessToken();
+    } else if (this.config.useAppToken) {
+      // 使用应用访问令牌（最简单的方式）
+      token = await this.getAppAccessToken();
+    } else {
+      // 默认使用租户访问令牌
+      token = await this.getTenantAccessToken();
+    }
 
     return {
       'Authorization': `Bearer ${token}`,
@@ -162,7 +215,8 @@ export class FeishuAuth {
    */
   async refreshToken(): Promise<void> {
     this.tenantTokenCache = undefined;
-    await this.getTenantAccessToken();
+    this.appTokenCache = undefined;
+    await this.getAppAccessToken();
   }
 
   /**

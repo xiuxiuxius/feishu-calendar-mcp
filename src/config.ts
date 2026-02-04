@@ -72,13 +72,16 @@ export interface CreateEventParams {
   description?: string;
   start_time: {
     timestamp: string;
+    timezone?: string;
   };
   end_time: {
     timestamp: string;
+    timezone?: string;
   };
   location?: string;
   attendee_ability?: string;
   visibility?: string;
+  free_busy_status?: string;
   attendees?: {
     user_id: string;
     type: string;

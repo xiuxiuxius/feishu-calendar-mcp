@@ -127,6 +127,8 @@ npx tsx test-client.ts
 
 ## 使用示例
 
+### 在 Claude Desktop 中使用
+
 **查询我的日历列表：**
 
 ```
@@ -144,6 +146,104 @@ npx tsx test-client.ts
 ```
 查询明天上午9点到12点之间，我有哪段空闲时间可以安排30分钟的会议
 ```
+
+---
+
+### API 直接调用示例
+
+#### 创建日程（完整参数）
+
+```bash
+curl -i -X POST \
+  'https://open.feishu.cn/open-apis/calendar/v4/calendars/{calendar_id}/events?user_id_type=open_id' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {your_user_access_token}' \
+  -d '{
+    "summary": "团队周会",
+    "description": "每周项目进度同步会议",
+    "start_time": {
+      "timestamp": "1738360800",
+      "timezone": "Asia/Shanghai"
+    },
+    "end_time": {
+      "timestamp": "1738364400",
+      "timezone": "Asia/Shanghai"
+    },
+    "visibility": "default",
+    "attendee_ability": "can_see_others",
+    "free_busy_status": "busy",
+    "location": "会议室 A"
+  }'
+```
+
+#### 创建日程（最小参数）
+
+```bash
+curl -i -X POST \
+  'https://open.feishu.cn/open-apis/calendar/v4/calendars/{calendar_id}/events' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {your_user_access_token}' \
+  -d '{
+    "summary": "快速会议",
+    "start_time": {
+      "timestamp": "1738360800"
+    },
+    "end_time": {
+      "timestamp": "1738362600"
+    }
+  }'
+```
+
+#### 查询日历列表
+
+```bash
+curl -i -X GET \
+  'https://open.feishu.cn/open-apis/calendar/v4/calendars' \
+  -H 'Authorization: Bearer {your_user_access_token}'
+```
+
+#### 查询日程列表
+
+```bash
+curl -i -X GET \
+  'https://open.feishu.cn/open-apis/calendar/v4/calendars/{calendar_id}/events' \
+  -H 'Authorization: Bearer {your_user_access_token}'
+```
+
+---
+
+### 参数说明
+
+#### 时间参数
+
+| 参数 | 类型 | 说明 | 示例 |
+|------|------|------|------|
+| `timestamp` | string | Unix 时间戳（秒） | `"1738360800"` |
+| `timezone` | string | 时区 | `"Asia/Shanghai"` |
+
+**注意**: 飞书 API 使用**秒**级时间戳，不是毫秒！
+
+#### 可见性 (visibility)
+
+| 值 | 说明 |
+|---|------|
+| `default` | 默认 |
+| `public` | 公开 |
+| `private` | 私密 |
+
+#### 参与者能力 (attendee_ability)
+
+| 值 | 说明 |
+|---|------|
+| `can_see_others` | 可见其他参与者 |
+| `cannot_see_others` | 不可见其他参与者 |
+
+#### 忙碌状态 (free_busy_status)
+
+| 值 | 说明 |
+|---|------|
+| `busy` | 忙碌 |
+| `free` | 空闲 |
 
 ## 开发
 

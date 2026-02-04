@@ -205,11 +205,16 @@ const TOOLS: Tool[] = [
         },
         start_time: {
           type: 'string',
-          description: '开始时间，Unix 时间戳，单位毫秒 (Start time timestamp in ms)',
+          description: '开始时间，Unix 时间戳，单位秒 (Start time timestamp in seconds)',
         },
         end_time: {
           type: 'string',
-          description: '结束时间，Unix 时间戳，单位毫秒 (End time timestamp in ms)',
+          description: '结束时间，Unix 时间戳，单位秒 (End time timestamp in seconds)',
+        },
+        timezone: {
+          type: 'string',
+          description: '时区，如 Asia/Shanghai (Timezone)',
+          default: 'Asia/Shanghai',
         },
         location: {
           type: 'string',
@@ -224,6 +229,11 @@ const TOOLS: Tool[] = [
           type: 'string',
           description: '可见性 (Visibility)',
           enum: ['default', 'public', 'private'],
+        },
+        free_busy_status: {
+          type: 'string',
+          description: '忙碌状态 (Free/Busy status)',
+          enum: ['busy', 'free'],
         },
         attendees: {
           type: 'array',

@@ -52,33 +52,16 @@ async function ensureAuth(config: FeishuConfig): Promise<void> {
     return;
   }
 
-  // 没有配置 token，启动 OAuth 授权流程
-  console.error('\n=== 飞书日历 MCP 首次使用授权 ===\n');
-  console.error('检测到未配置访问令牌，正在启动授权流程...\n');
-
-  const oauth = new OAuthHelper(config);
-  const tokens = await oauth.startAuthServer();
-
-  console.error('\n✓ 授权成功!');
-  console.error(`\n请将以下配置添加到你的 MCP 配置中:\n`);
-  console.error(`FEISHU_REFRESH_TOKEN=${tokens.refreshToken}\n`);
-  console.error('然后重启 MCP 服务器\n');
-
-  // 将 refresh_token 写入到 .env 文件（如果存在）
-  const fs = await import('fs');
-  const path = await import('path');
-  const envPath = path.join(process.cwd(), '.env');
-
-  if (fs.existsSync(envPath)) {
-    let envContent = fs.readFileSync(envPath, 'utf-8');
-    if (!envContent.includes('FEISHU_REFRESH_TOKEN')) {
-      envContent += `\nFEISHU_REFRESH_TOKEN=${tokens.refreshToken}\n`;
-      fs.writeFileSync(envPath, envContent);
-      console.error('✓ 已自动更新 .env 文件\n');
-    }
-  }
-
-  process.exit(0);
+  // 没有配置 token，输出友好提示（不阻塞 MCP 启动）
+  console.error('\n=== 飞书日历 MCP 配置提示 ===');
+  console.error('\n检测到未配置访问令牌。请使用以下方式之一获取：');
+  console.error('\n方式一：运行授权脚本（推荐）');
+  console.error('  npm run auth');
+  console.error('\n方式二：手动配置 refresh_token');
+  console.error('  访问 https://open.feishu.cn/api-explorer/');
+  console.error('  选择 authen → getUserAccessTokenBy3rdApp');
+  console.error('  将返回的 refresh_token 添加到配置中\n');
+  console.error('配置后重启 MCP 服务器即可使用\n');
 }
 
 // 定义工具列表

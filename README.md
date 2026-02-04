@@ -8,7 +8,7 @@ Feishu Calendar MCP Server - 用于将飞书日历 API 包装成 Model Context P
 - **日程管理**: 获取、创建、更新、删除日程事件
 - **订阅管理**: 订阅/取消订阅日历
 - **忙碌状态**: 查询用户忙碌状态和可用时间
-- **自动授权**: 支持通过 OAuth 获取 refresh_token，自动刷新 access_token
+- **简单认证**: 支持多种认证方式，推荐使用 app_access_token（最简单）
 
 ## 快速开始
 
@@ -33,18 +33,30 @@ npm run build
 2. **权限管理** → **权限配置**，开通以下权限：
    - `calendar:calendar` - 查看、管理日历
    - `calendar:event` - 查看、创建、编辑日程
-3. **安全设置** → **重定向 URI**，添加：
-   - `http://localhost:3456/callback`
 
 ### 4. 配置认证方式
 
-本服务器支持两种认证方式，推荐使用**方式一**：
+本服务器支持三种认证方式，推荐使用**方式一（最简单）**：
 
 ---
 
-#### 方式一：Refresh Token（推荐，自动刷新）
+#### 方式一：App Access Token（推荐，最简单）
 
-通过 OAuth 授权获取 refresh_token，系统会自动刷新 access_token，无需手动更新。
+只需配置 `app_id` 和 `app_secret`，系统自动获取 app_access_token。
+
+```bash
+FEISHU_APP_ID=cli_xxxxxxxxxxxxx
+FEISHU_APP_SECRET=xxxxxxxxxxxxxxxxxxxx
+FEISHU_USE_APP_TOKEN=true
+```
+
+**无需任何额外配置，这是最简单的方式！**
+
+---
+
+#### 方式二：Refresh Token（自动刷新）
+
+通过 OAuth 授权获取 refresh_token，系统会自动刷新 access_token。
 
 ```bash
 FEISHU_APP_ID=cli_xxxxxxxxxxxxx
@@ -62,7 +74,7 @@ npm run auth
 
 ---
 
-#### 方式二：User Access Token（手动管理）
+#### 方式三：User Access Token（手动管理）
 
 直接使用 user_access_token，但需要注意 token 有效期约 2 小时，过期需要重新获取。
 
@@ -72,14 +84,32 @@ FEISHU_APP_SECRET=xxxxxxxxxxxxxxxxxxxx
 FEISHU_USER_ACCESS_TOKEN=你的用户访问令牌
 ```
 
-获取 user_access_token 的方式见 [TOKEN_GUIDE.md](TOKEN_GUIDE.md)
-
 ### 5. 在 Claude Desktop 中使用
 
 编辑 Claude Desktop 配置文件：
 
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+**使用 App Access Token（推荐，最简单）**:
+
+```json
+{
+  "mcpServers": {
+    "feishu-calendar": {
+      "command": "node",
+      "args": ["/path/to/feishu-calendar/dist/index.js"],
+      "env": {
+        "FEISHU_APP_ID": "your_app_id",
+        "FEISHU_APP_SECRET": "your_app_secret",
+        "FEISHU_USE_APP_TOKEN": "true"
+      }
+    }
+  }
+}
+```
+
+**使用 Refresh Token**:
 
 ```json
 {
@@ -96,8 +126,6 @@ FEISHU_USER_ACCESS_TOKEN=你的用户访问令牌
   }
 }
 ```
-
-首次启动时，如果未配置 token，会提示运行 `npm run auth` 进行授权。
 
 ### 6. 测试连接
 
@@ -243,7 +271,7 @@ npm run build
 
 ## 注意事项
 
-1. **认证方式**: 推荐使用 refresh_token（自动刷新，无需手动更新）
+1. **认证方式**: 推荐使用 app_access_token（只需 app_id 和 app_secret，最简单）
 2. **Token 刷新**: refresh_token 会自动刷新 access_token，无需手动干预
 3. **时间格式**: API 使用 Unix 时间戳（秒）
 4. **权限配置**: 确保应用已获取足够的权限

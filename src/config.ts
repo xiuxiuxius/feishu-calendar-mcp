@@ -12,8 +12,10 @@ export interface FeishuConfig {
   tenantAccessToken?: string;
   // 用户访问令牌 (User Access Token) - 需要用户授权时使用
   userAccessToken?: string;
-  // 用户刷新令牌 (User Refresh Token) - 用于自动刷新访问令牌（推荐）
+  // 用户刷新令牌 (User Refresh Token) - 用于自动刷新访问令牌
   refreshToken?: string;
+  // 是否使用应用访问令牌 (App Access Token) - 最简单的方式，只需 app_id 和 app_secret
+  useAppToken?: boolean;
   // API 基础 URL
   apiBaseUrl?: string;
 }

@@ -28,6 +28,7 @@ function getConfigFromEnv(): FeishuConfig {
   const appSecret = process.env.FEISHU_APP_SECRET;
   const userAccessToken = process.env.FEISHU_USER_ACCESS_TOKEN;
   const refreshToken = process.env.FEISHU_REFRESH_TOKEN;
+  const useAppToken = process.env.FEISHU_USE_APP_TOKEN === 'true';
 
   if (!appId || !appSecret) {
     throw new Error(
@@ -40,6 +41,7 @@ function getConfigFromEnv(): FeishuConfig {
     appSecret,
     userAccessToken,
     refreshToken,
+    useAppToken,
   };
 }
 

@@ -17,7 +17,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc && node dist/index.js",
-    "auth": "tsc && node run-auth.js",
+    "auth": "tsc && npx tsx run-auth.ts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

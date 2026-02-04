@@ -6,7 +6,16 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(node:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(git push)",
+      "Bash(npm publish:*)",
+      "Bash(TOKEN=\"t-g10424kpPPJLVRMWFH7WBYHGN6FZG5ONDK6VEPA3\")",
+      "Bash(CALENDAR_ID=\"feishu.cn_38AilWf8q43bU1dV40PxJb@group.calendar.feishu.cn\")",
+      "Bash(EVENT_ID=\"e10d48b8-94ee-4655-9af5-6045efaa0f85_0\")",
+      "Bash(__NEW_LINE__ echo \"5. 更新日程:\")",
+      "Bash(curl:*)",
+      "Bash(__NEW_LINE__ echo \"6. 删除日程:\")",
+      "Bash(__NEW_LINE__ echo \"8. 订阅日历:\")"
     ]
   }
 }
